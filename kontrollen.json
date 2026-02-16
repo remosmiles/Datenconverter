@@ -1,4 +1,1 @@
 [
-    {"kennzeichen": "zh12345", "herkunft": "Schweiz", "personen": 2, "status": "OK"},
-    {"kennzeichen": "de-ab100", "herkunft": "EU", "personen": 1, "status": "Anzeige", "grund": "Technisch"}
-]
