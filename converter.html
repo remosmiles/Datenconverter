@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Neon Data Converter</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --neon: #00f2ff; --bg: #0a0a0a; --magenta: #ff00e5; }
+        body { 
+            background: var(--bg); color: white; font-family: 'Orbitron', sans-serif;
+            display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0;
+        }
+        .converter-card {
+            background: #151515; padding: 40px; border-radius: 20px;
+            border: 2px solid var(--neon); box-shadow: 0 0 20px rgba(0, 242, 255, 0.2);
+            text-align: center; width: 450px;
+        }
+        h1 { color: var(--neon); text-shadow: 0 0 10px var(--neon); font-size: 1.5em; }
+        .drop-zone {
+            border: 2px dashed #444; padding: 30px; margin: 20px 0;
+            border-radius: 10px; transition: 0.3s; cursor: pointer;
+        }
+        .drop-zone:hover { border-color: var(--neon); background: rgba(0, 242, 255, 0.05); }
+        input[type="file"] { display: none; }
+        
+        .btn {
+            background: transparent; color: var(--magenta); border: 2px solid var(--magenta);
+            padding: 15px 30px; border-radius: 5px; cursor: pointer; font-weight: bold;
+            text-transform: uppercase; width: 100%; transition: 0.3s;
+        }
+        .btn:hover { background: var(--magenta); color: white; box-shadow: 0 0 20px var(--magenta); }
+        #status { margin-top: 15px; font-size: 0.8em; color: #888; }
+    </style>
+</head>
+<body>
+
+<div class="converter-card">
+    <h1>Data Transformer</h1>
+    <p style="font-size: 0.8em; color: #aaa;">JSON zu CSV Konverter</p>
+
+    <div class="drop-zone" onclick="document.getElementById('fileInput').click()">
+        <p id="fileName">Datei hierher ziehen oder klicken</p>
+        <input type="file" id="fileInput" accept=".json">
+    </div>
+
+    <button class="btn" onclick="convertData()">Konvertieren & Download</button>
+    <div id="status">Bereit für Upload...</div>
+</div>
+
+<script>
+    const fileInput = document.getElementById('fileInput');
+    const fileNameDisplay = document.getElementById('fileName');
+
+    fileInput.onchange = () => {
+        if(fileInput.files.length > 0) {
+            fileNameDisplay.innerText = fileInput.files[0].name;
+            document.getElementById('status').innerText = "Datei geladen!";
+        }
+    };
+
+    function convertData() {
+        const file = fileInput.files[0];
+        if (!file) { alert("Bitte erst eine Datei wählen!"); return; }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const jsonData = JSON.parse(e.target.result);
+                const csvContent = jsonToCsv(jsonData);
+                downloadCsv(csvContent);
+                document.getElementById('status').innerText = "Konvertierung erfolgreich!";
+            } catch (err) {
+                alert("Fehler: Ungültiges JSON-Format!");
+                console.error(err);
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    function jsonToCsv(items) {
+        if (!Array.isArray(items) || items.length === 0) return "";
+        const replacer = (key, value) => value === null ? '' : value; 
+        const header = Object.keys(items[0]);
+        const csv = [
+            header.join(','), // Header-Zeile
+            ...items.map(row => header.map(fieldName => JSON.stringify(row[fieldName], replacer)).join(','))
+        ].join('\r\n');
+        return csv;
+    }
+
+    function downloadCsv(csv) {
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", "carkontrolle_export.csv");
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+</script>
+
+</body>
+</html>
